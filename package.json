@@ -1,0 +1,47 @@
+{
+  "name": "@jeantimex/genetic-algorithm",
+  "version": "0.0.0",
+  "description": "Implement Genetic Algorithm in JavaScript.",
+  "main": "dist/genetic-algorithm.js",
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build:browser": "webpack && cp dist/genetic-algorithm.js examples/browser",
+    "build:node": "webpack && cp dist/genetic-algorithm.js examples/node/ && node examples/node/example.js",
+    "build": "webpack",
+    "semantic-release": "semantic-release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeantimex/genetic-algorithm.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jeantimex/genetic-algorithm/issues"
+  },
+  "homepage": "https://github.com/jeantimex/genetic-algorithm#readme",
+  "devDependencies": {
+    "@babel/core": "^7.11.0",
+    "@babel/preset-env": "^7.11.0",
+    "@commitlint/cli": "^9.1.2",
+    "@commitlint/config-conventional": "^9.1.1",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/github": "^7.0.7",
+    "@semantic-release/npm": "^7.0.5",
+    "@semantic-release/release-notes-generator": "^9.0.1",
+    "babel-loader": "^8.1.0",
+    "husky": "^4.2.5",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
+}
