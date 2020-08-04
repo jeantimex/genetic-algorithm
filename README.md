@@ -1,2 +1,3 @@
-# genetic-algorithm
-Implement Genetic Algorithm in JavaScript
+# Genetic Algorithm
+
+Implement Genetic Algorithm in JavaScript.
