@@ -15,6 +15,7 @@
     "build:browser": "webpack && cp dist/genetic-algorithm.js examples/browser",
     "build:node": "webpack && cp dist/genetic-algorithm.js examples/node/ && node examples/node/example.js",
     "build": "webpack",
+    "dev:browser": "npm run build:browser && node server.js",
     "semantic-release": "semantic-release"
   },
   "repository": {
@@ -41,8 +42,11 @@
     "@semantic-release/npm": "^7.0.5",
     "@semantic-release/release-notes-generator": "^9.0.1",
     "babel-loader": "^8.1.0",
+    "express": "^4.17.1",
     "husky": "^4.2.5",
+    "open": "^7.1.0",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
-  }
+  },
+  "dependencies": {}
 }

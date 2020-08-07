@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: 'genetic-algorithm.js',
-    library: 'ga',
+    library: 'genetic',
     libraryTarget: 'umd',
     globalObject: 'this',
   },

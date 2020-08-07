@@ -208,4 +208,6 @@ class GeneticAlgorithm {
   }
 }
 
-export { GeneticAlgorithm };
+export {
+  GeneticAlgorithm,
+};

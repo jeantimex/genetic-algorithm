@@ -1,4 +1,1 @@
-const {
-  GeneticAlgorithm,
-  GeneticAlgorithmOptions,
-} = require('./genetic-algorithm.js');
+const {GeneticAlgorithm} = require('./genetic-algorithm.js');

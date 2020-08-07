@@ -1,10 +1,10 @@
-const { GeneticAlgorithm } = ga;
+const {GeneticAlgorithm} = genetic;
 
-const genetic = new GeneticAlgorithm({});
+const ga = new GeneticAlgorithm();
 
-genetic.optimize = GeneticAlgorithm.Optimize.Maximize;
+ga.optimize = GeneticAlgorithm.Optimize.Maximize;
 
-genetic.seed = function () {
+ga.seed = function () {
   function randomString(len) {
     var text = '';
     var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -18,7 +18,7 @@ genetic.seed = function () {
   return randomString(this.userData['solution'].length);
 };
 
-genetic.mutate = function (entity) {
+ga.mutate = function (entity) {
   function replaceAt(str, index, character) {
     return (
       str.substr(0, index) + character + str.substr(index + character.length)
@@ -36,7 +36,7 @@ genetic.mutate = function (entity) {
   );
 };
 
-genetic.crossover = function (mother, father) {
+ga.crossover = function (mother, father) {
   // two-point crossover
   var len = mother.length;
   var ca = Math.floor(Math.random() * len);
@@ -55,7 +55,7 @@ genetic.crossover = function (mother, father) {
   return [son, daughter];
 };
 
-genetic.fitness = function (entity) {
+ga.fitness = function (entity) {
   var fitness = 0;
 
   var i;
@@ -75,12 +75,12 @@ genetic.fitness = function (entity) {
   return fitness;
 };
 
-genetic.generation = function (pop, generation, stats) {
+ga.generation = function (pop, generation, stats) {
   // stop running once we've reached the solution
   return pop[0].entity != this.userData['solution'];
 };
 
-genetic.notification = function (pop, generation, stats, isFinished) {
+ga.notification = function (pop, generation, stats, isFinished) {
   function lerp(a, b, p) {
     return a + (b - a) * p;
   }
@@ -135,5 +135,5 @@ btnSolve.addEventListener('click', () => {
     solution: quote.value,
   };
 
-  genetic.evolve(config, userData);
+  ga.evolve(config, userData);
 });
