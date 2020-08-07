@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/jeantimex/genetic-algorithm/compare/v1.0.1...v1.0.2) (2020-08-07)
+
+
+### Bug Fixes
+
+* basically it is working ([fa859a5](https://github.com/jeantimex/genetic-algorithm/commit/fa859a53f65b94333af171b73738b88d7d1de81f))
+
 ## [1.0.1](https://github.com/jeantimex/genetic-algorithm/compare/v1.0.0...v1.0.1) (2020-08-04)
 
 
