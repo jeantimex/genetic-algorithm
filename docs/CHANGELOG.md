@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/jeantimex/genetic-algorithm/compare/v1.0.2...v1.0.3) (2020-08-07)
+
+
+### Bug Fixes
+
+* rename library name to genetic ([b37ff75](https://github.com/jeantimex/genetic-algorithm/commit/b37ff7502f6a098dbd61e50b91bfcae97e8a5ddf))
+
 ## [1.0.2](https://github.com/jeantimex/genetic-algorithm/compare/v1.0.1...v1.0.2) (2020-08-07)
 
 
