@@ -30,6 +30,7 @@
   "homepage": "https://github.com/jeantimex/genetic-algorithm#readme",
   "devDependencies": {
     "@babel/core": "^7.11.0",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/preset-env": "^7.11.0",
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^9.1.1",

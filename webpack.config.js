@@ -1,12 +1,12 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: 'genetic-algorithm.js',
-    library: 'GeneticAlgorithm',
+    library: 'ga',
     libraryTarget: 'umd',
     globalObject: 'this',
   },

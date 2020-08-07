@@ -1,13 +1,25 @@
 <html>
-<head>
-  <title>Test Genetic Algorithm</title>
-</head>
-<body>
-  <script src='./genetic-algorithm.js'></script>
-  <script>
-    const {add, sub} = GeneticAlgorithm;
-    console.log('1 + 2 = ' + add(1, 2));
-    console.log('2 - 1 = ' + sub(2, 1));
-  </script>
-</body>
+  <head>
+    <title>Test Genetic Algorithm</title>
+  </head>
+  <body>
+    <textarea id="quote" style="width: 300px; height: 100px;">Hello!</textarea>
+    <p><button id="solve">Solve</button></p>
+    <table id="results">
+      <thead>
+        <tr>
+          <th>Generation</th>
+          <th>Fitness</th>
+          <th>Solution</th>
+        </tr>
+      </thead>
+      <tbody style="font-family: monospace;">
+        <tr>
+          <td colspan="3">Press 'Solve' Button to begin.</td>
+        </tr>
+      </tbody>
+    </table>
+    <script src="./genetic-algorithm.js"></script>
+    <script src="./example.js"></script>
+  </body>
 </html>
