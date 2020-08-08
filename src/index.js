@@ -1,4 +1,11 @@
-import { clone, encode, decode } from './utils';
+import {
+  clone,
+  encode,
+  decode,
+  maximize,
+  minimize,
+  tournamentSelection,
+} from './utils';
 
 const SelectionStrategy = {
   Tournament: 'Tournament',
@@ -7,8 +14,8 @@ const SelectionStrategy = {
 };
 
 const OptimizeStrategy = {
-  Maximize: (a, b) => a >= b,
-  Minimize: (a, b) => a < b,
+  Maximize: 'Maximize',
+  Minimize: 'Minimize',
 };
 
 /**
@@ -18,16 +25,8 @@ class GeneticAlgorithm {
   constructor(options = {}) {
     const { optimizeStrategy, selectionStrategy } = options;
 
-    this.optimize = optimizeStrategy || OptimizeStrategy.Maximize;
+    this.optimizeStrategy = optimizeStrategy || OptimizeStrategy.Maximize;
     this.selectionStrategy = selectionStrategy || SelectionStrategy.Tournament;
-
-    this.select1 = (pop) => {
-      const n = pop.length;
-      const a = pop[Math.floor(Math.random() * n)];
-      const b = pop[Math.floor(Math.random() * n)];
-      return this.optimize(a.fitness, b.fitness) ? a.entity : b.entity;
-    };
-    this.select2 = (pop) => [this.select1(pop), this.select1(pop)];
 
     this.fitness = null;
     this.seed = null;
@@ -36,15 +35,15 @@ class GeneticAlgorithm {
     this.generation = null;
     this.notification = null;
 
-    this.configuration = {
-      size: 250,
-      crossover: 0.9,
-      mutation: 0.2,
-      iterations: 100,
-      fittestAlwaysSurvives: true,
-      maxResults: 100,
-      skip: 0,
-    };
+    this.populationSize = 250;
+    this.crossoverRate = 0.3;
+    this.mutationRate = 0.3;
+
+    this.iterations = 4000;
+    this.skip = 20;
+    this.maxResults = 100;
+
+    this.fittestAlwaysSurvives = true;
 
     this.userData = {};
     this.internalGenState = {};
@@ -52,122 +51,136 @@ class GeneticAlgorithm {
     this.entities = [];
   }
 
-  evolve(config, userData) {
-    var k;
-    for (k in config) {
-      this.configuration[k] = config[k];
+  get optimize() {
+    if (this.optimizeStrategy === OptimizeStrategy.Maximize) {
+      return maximize;
+    }
+    if (this.optimizeStrategy === OptimizeStrategy.Minimize) {
+      return minimize;
+    }
+  }
+
+  get selectSingle() {
+    if (this.selectionStrategy === SelectionStrategy.Tournament) {
+      return tournamentSelection(this.optimize);
+    }
+  }
+
+  get selectParents() {
+    if (this.selectionStrategy === SelectionStrategy.Tournament) {
+      return (pop) => [this.selectSingle(pop), this.selectSingle(pop)];
+    }
+  }
+
+  evolve(i) {
+    const mutateOrNot = (entity) => {
+      // applies mutation based on mutation probability
+      return Math.random() <= this.mutationRate && this.mutate
+        ? this.mutate(clone(entity))
+        : entity;
     }
 
-    for (k in userData) {
-      this.userData[k] = userData[k];
+    // reset for each generation
+    this.internalGenState = {};
+
+    // score and sort
+    var pop = this.entities
+      .map((entity) => {
+        return { fitness: this.fitness(entity), entity: entity };
+      })
+      .sort((a, b) => {
+        return this.optimize(a.fitness, b.fitness) ? -1 : 1;
+      });
+
+    // generation notification
+    var mean =
+      pop.reduce((a, b) => {
+        return a + b.fitness;
+      }, 0) / pop.length;
+    var stdev = Math.sqrt(
+      pop
+        .map((a) => {
+          return (a.fitness - mean) * (a.fitness - mean);
+        })
+        .reduce((a, b) => {
+          return a + b;
+        }, 0) / pop.length
+    );
+
+    var stats = {
+      maximum: pop[0].fitness,
+      minimum: pop[pop.length - 1].fitness,
+      mean: mean,
+      stdev: stdev,
+    };
+
+    var r = this.generation
+      ? this.generation(
+          pop.slice(0, this.maxResults),
+          i,
+          stats
+        )
+      : true;
+    var isFinished =
+      (typeof r != 'undefined' && !r) ||
+      i == this.iterations - 1;
+
+    if (
+      this.notification &&
+      (isFinished ||
+        this.skip == 0 ||
+        i % this.skip == 0)
+    ) {
+      this.sendNotification(
+        pop.slice(0, this.maxResults),
+        i,
+        stats,
+        isFinished
+      );
     }
 
-    this.start();
+    if (isFinished) return true;
+
+    // crossover and mutate
+    var newPop = [];
+
+    if (this.fittestAlwaysSurvives)
+      // lets the best solution fall through
+      newPop.push(pop[0].entity);
+
+    while (newPop.length < this.populationSize) {
+      if (
+        this.crossoverRate && // if there is a crossover function
+        Math.random() <= this.crossoverRate && // base crossover on specified probability
+        newPop.length + 1 < this.populationSize // keeps us from going 1 over the max population size
+      ) {
+        var parents = this.selectParents(pop);
+        var children = this.crossover(
+          clone(parents[0]),
+          clone(parents[1])
+        ).map(mutateOrNot);
+        newPop.push(children[0], children[1]);
+      } else {
+        newPop.push(mutateOrNot(this.selectSingle(pop)));
+      }
+    }
+
+    this.entities = newPop;
   }
 
   start() {
     var i;
-    var self = this;
-
-    function mutateOrNot(entity) {
-      // applies mutation based on mutation probability
-      return Math.random() <= self.configuration.mutation && self.mutate
-        ? self.mutate(clone(entity))
-        : entity;
-    }
 
     // seed the population
-    for (i = 0; i < this.configuration.size; ++i) {
+    this.entities = [];
+    for (i = 0; i < this.populationSize; ++i) {
       this.entities.push(clone(this.seed()));
     }
 
-    for (i = 0; i < this.configuration.iterations; ++i) {
-      // reset for each generation
-      this.internalGenState = {};
-
-      // score and sort
-      var pop = this.entities
-        .map(function (entity) {
-          return { fitness: self.fitness(entity), entity: entity };
-        })
-        .sort(function (a, b) {
-          return self.optimize(a.fitness, b.fitness) ? -1 : 1;
-        });
-
-      // generation notification
-      var mean =
-        pop.reduce(function (a, b) {
-          return a + b.fitness;
-        }, 0) / pop.length;
-      var stdev = Math.sqrt(
-        pop
-          .map(function (a) {
-            return (a.fitness - mean) * (a.fitness - mean);
-          })
-          .reduce(function (a, b) {
-            return a + b;
-          }, 0) / pop.length
-      );
-
-      var stats = {
-        maximum: pop[0].fitness,
-        minimum: pop[pop.length - 1].fitness,
-        mean: mean,
-        stdev: stdev,
-      };
-
-      var r = this.generation
-        ? this.generation(
-            pop.slice(0, this.configuration['maxResults']),
-            i,
-            stats
-          )
-        : true;
-      var isFinished =
-        (typeof r != 'undefined' && !r) ||
-        i == this.configuration.iterations - 1;
-
-      if (
-        this.notification &&
-        (isFinished ||
-          this.configuration['skip'] == 0 ||
-          i % this.configuration['skip'] == 0)
-      ) {
-        this.sendNotification(
-          pop.slice(0, this.configuration['maxResults']),
-          i,
-          stats,
-          isFinished
-        );
+    for (i = 0; i < this.iterations; ++i) {
+      if (this.evolve(i)) {
+        break;
       }
-
-      if (isFinished) break;
-
-      // crossover and mutate
-      var newPop = [];
-
-      if (this.configuration.fittestAlwaysSurvives)
-        // lets the best solution fall through
-        newPop.push(pop[0].entity);
-
-      while (newPop.length < self.configuration.size) {
-        if (
-          this.crossover && // if there is a crossover function
-          Math.random() <= this.configuration.crossover && // base crossover on specified probability
-          newPop.length + 1 < self.configuration.size // keeps us from going 1 over the max population size
-        ) {
-          var parents = this.select2(pop);
-          var children = this.crossover(
-            clone(parents[0]),
-            clone(parents[1])
-          ).map(mutateOrNot);
-          newPop.push(children[0], children[1]);
-        } else {
-          newPop.push(mutateOrNot(self.select1(pop)));
-        }
-      }
-
-      this.entities = newPop;
     }
   }
 

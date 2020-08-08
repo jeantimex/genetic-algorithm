@@ -2,6 +2,8 @@ const {GeneticAlgorithm} = genetic;
 
 const ga = new GeneticAlgorithm();
 
+let solution = '';
+
 ga.seed = function () {
   function randomString(len) {
     var text = '';
@@ -13,7 +15,7 @@ ga.seed = function () {
   }
 
   // create random strings that are equal in length to solution
-  return randomString(this.userData['solution'].length);
+  return randomString(solution.length);
 };
 
 ga.mutate = function (entity) {
@@ -59,13 +61,13 @@ ga.fitness = function (entity) {
   var i;
   for (i = 0; i < entity.length; ++i) {
     // increase fitness for each character that matches
-    if (entity[i] == this.userData['solution'][i]) fitness += 1;
+    if (entity[i] == solution[i]) fitness += 1;
 
     // award fractions of a point as we get warmer
     fitness +=
       (127 -
         Math.abs(
-          entity.charCodeAt(i) - this.userData['solution'].charCodeAt(i)
+          entity.charCodeAt(i) - solution.charCodeAt(i)
         )) /
       50;
   }
@@ -75,7 +77,7 @@ ga.fitness = function (entity) {
 
 ga.generation = function (pop, generation, stats) {
   // stop running once we've reached the solution
-  return pop[0].entity != this.userData['solution'];
+  return pop[0].entity != solution;
 };
 
 ga.notification = function (pop, generation, stats, isFinished) {
@@ -120,18 +122,7 @@ btnSolve.addEventListener('click', () => {
   const tbody = document.querySelector('#results tbody');
   tbody.innerHTML = '';
 
-  var config = {
-    iterations: 4000,
-    size: 250,
-    crossover: 0.3,
-    mutation: 0.3,
-    skip: 20,
-  };
-
   const quote = document.querySelector('#quote');
-  var userData = {
-    solution: quote.value,
-  };
-
-  ga.evolve(config, userData);
+  solution = quote.value;
+  ga.start();
 });
