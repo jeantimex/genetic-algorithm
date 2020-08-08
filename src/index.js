@@ -1,17 +1,35 @@
+import { clone, encode, decode } from './utils';
+
+const SelectionStrategy = {
+  Tournament: 'Tournament',
+  Random: 'Random',
+  Rank: 'Rank',
+};
+
+const OptimizeStrategy = {
+  Maximize: (a, b) => a >= b,
+  Minimize: (a, b) => a < b,
+};
+
 /**
  * Genetic Algorithm
  */
 class GeneticAlgorithm {
-  constructor() {
-    this.optimize = null;
+  constructor(options = {}) {
+    const { optimizeStrategy, selectionStrategy } = options;
+
+    this.optimize = optimizeStrategy || OptimizeStrategy.Maximize;
+    this.selectionStrategy = selectionStrategy || SelectionStrategy.Tournament;
+
     this.select1 = (pop) => {
       const n = pop.length;
       const a = pop[Math.floor(Math.random() * n)];
       const b = pop[Math.floor(Math.random() * n)];
       return this.optimize(a.fitness, b.fitness) ? a.entity : b.entity;
     };
-    (this.select2 = (pop) => [this.select1(pop), this.select1(pop)]),
-      (this.fitness = null);
+    this.select2 = (pop) => [this.select1(pop), this.select1(pop)];
+
+    this.fitness = null;
     this.seed = null;
     this.mutate = null;
     this.crossover = null;
@@ -34,44 +52,6 @@ class GeneticAlgorithm {
     this.entities = [];
   }
 
-  static Optimize = {
-    Maximize: (a, b) => a >= b,
-    Minimize: (a, b) => a < b,
-  };
-
-  static Serialization = {
-    stringify: (obj) =>
-      JSON.stringify(obj, function (key, value) {
-        if (value instanceof Function || typeof value == 'function') {
-          return '__func__:' + value.toString();
-        }
-        if (value instanceof RegExp) {
-          return '__regex__:' + value;
-        }
-        return value;
-      }),
-    parse: (str) =>
-      JSON.parse(str, function (key, value) {
-        if (typeof value != 'string') {
-          return value;
-        }
-        if (value.lastIndexOf('__func__:', 0) === 0) {
-          return eval('(' + value.slice(9) + ')');
-        }
-        if (value.lastIndexOf('__regex__:', 0) === 0) {
-          return eval('(' + value.slice(10) + ')');
-        }
-        return value;
-      }),
-  };
-
-  static Clone = (obj) => {
-    if (obj == null || typeof obj != 'object') {
-      return obj;
-    }
-    return JSON.parse(JSON.stringify(obj));
-  };
-
   evolve(config, userData) {
     var k;
     for (k in config) {
@@ -92,13 +72,13 @@ class GeneticAlgorithm {
     function mutateOrNot(entity) {
       // applies mutation based on mutation probability
       return Math.random() <= self.configuration.mutation && self.mutate
-        ? self.mutate(GeneticAlgorithm.Clone(entity))
+        ? self.mutate(clone(entity))
         : entity;
     }
 
     // seed the population
     for (i = 0; i < this.configuration.size; ++i) {
-      this.entities.push(GeneticAlgorithm.Clone(this.seed()));
+      this.entities.push(clone(this.seed()));
     }
 
     for (i = 0; i < this.configuration.iterations; ++i) {
@@ -178,8 +158,8 @@ class GeneticAlgorithm {
         ) {
           var parents = this.select2(pop);
           var children = this.crossover(
-            GeneticAlgorithm.Clone(parents[0]),
-            GeneticAlgorithm.Clone(parents[1])
+            clone(parents[0]),
+            clone(parents[1])
           ).map(mutateOrNot);
           newPop.push(children[0], children[1]);
         } else {
@@ -193,14 +173,14 @@ class GeneticAlgorithm {
 
   sendNotification(pop, generation, stats, isFinished) {
     const response = {
-      pop: pop.map(GeneticAlgorithm.Serialization.stringify),
+      pop: pop.map(encode),
       generation: generation,
       stats: stats,
       isFinished: isFinished,
     };
 
     this.notification(
-      response.pop.map(GeneticAlgorithm.Serialization.parse),
+      response.pop.map(decode),
       response.generation,
       response.stats,
       response.isFinished
@@ -208,6 +188,4 @@ class GeneticAlgorithm {
   }
 }
 
-export {
-  GeneticAlgorithm,
-};
+export { GeneticAlgorithm, OptimizeStrategy, SelectionStrategy };

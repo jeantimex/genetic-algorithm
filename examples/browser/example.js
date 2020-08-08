@@ -2,8 +2,6 @@ const {GeneticAlgorithm} = genetic;
 
 const ga = new GeneticAlgorithm();
 
-ga.optimize = GeneticAlgorithm.Optimize.Maximize;
-
 ga.seed = function () {
   function randomString(len) {
     var text = '';
