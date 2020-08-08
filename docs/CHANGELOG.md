@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/jeantimex/genetic-algorithm/compare/v1.0.3...v1.0.4) (2020-08-08)
+
+
+### Bug Fixes
+
+* start to optimize the api ([78e46c2](https://github.com/jeantimex/genetic-algorithm/commit/78e46c21e42662b6c2be54371abaf4f09af70b9d))
+
 ## [1.0.3](https://github.com/jeantimex/genetic-algorithm/compare/v1.0.2...v1.0.3) (2020-08-07)
 
 
