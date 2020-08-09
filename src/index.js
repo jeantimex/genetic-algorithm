@@ -1,9 +1,4 @@
-import {
-  clone,
-  maximize,
-  minimize,
-  tournamentSelection,
-} from './utils';
+import { clone, maximize, minimize, tournamentSelection } from './utils';
 
 const SelectionStrategy = {
   Tournament: 'Tournament',
@@ -30,7 +25,7 @@ class GeneticAlgorithm {
     this.mutate = null;
     this.crossover = null;
     this.generation = null;
-    this.onEvovle = null;
+    this.onEvolve = null;
 
     this.crossoverRate = 0.3;
     this.mutationRate = 0.3;
@@ -53,7 +48,7 @@ class GeneticAlgorithm {
 
   get selectSingle() {
     if (this.selectionStrategy === SelectionStrategy.Tournament) {
-      return tournamentSelection(this.fitness, this.optimize);
+      return tournamentSelection(this.optimize);
     }
   }
 
@@ -69,21 +64,25 @@ class GeneticAlgorithm {
 
   evolve(generation) {
     // score and sort by fitness
-    this.population
+    const entities = this.population
+      .map((entity) => ({
+        entity,
+        fitness: this.fitness(entity),
+      }))
       .sort((a, b) => {
         // Put the fittest one in front of the array.
-        return this.optimize(this.fitness(a), this.fitness(b)) ? -1 : 1;
+        return this.optimize(a.fitness, b.fitness) ? -1 : 1;
       });
 
     // generation notification
     const mean =
-      this.population.reduce((a, b) => {
-        return a + this.fitness(b);
+      entities.reduce((a, b) => {
+        return a + b.fitness;
       }, 0) / this.populationSize;
     const stdev = Math.sqrt(
-      this.population
+      entities
         .map((a) => {
-          return (this.fitness(a) - mean) * (this.fitness(a) - mean);
+          return (a.fitness - mean) * (a.fitness - mean);
         })
         .reduce((a, b) => {
           return a + b;
@@ -91,34 +90,18 @@ class GeneticAlgorithm {
     );
 
     const stats = {
-      maximum: this.fitness(this.population[0]),
-      minimum: this.fitness(this.population[this.populationSize - 1]),
+      maximum: entities[0].fitness,
+      minimum: entities[this.populationSize - 1].fitness,
       mean,
       stdev,
     };
 
-    const entities = this.population.map((entity) => ({
-      entity,
-      fitness: this.fitness(entity),
-    })); 
-
     const r = this.isFinished
-      ? this.isFinished(
-        this.entities,
-        generation,
-        stats
-      )
+      ? this.isFinished(entities, generation, stats)
       : false;
-    const isFinished =
-      !!r ||
-      generation == this.iterations - 1;
+    const isFinished = !!r || generation == this.iterations - 1;
 
-    this.onEvovle(
-      this.entities,
-      generation,
-      stats,
-      isFinished
-    );
+    this.onEvolve(entities, generation, stats, isFinished);
 
     if (isFinished) return true;
 
@@ -127,14 +110,14 @@ class GeneticAlgorithm {
       return Math.random() <= this.mutationRate && this.mutate
         ? this.mutate(clone(entity))
         : entity;
-    }
+    };
 
     // crossover and mutate
     var newPopulation = [];
 
     if (this.fittestAlwaysSurvives)
       // lets the best solution fall through
-      newPopulation.push(this.population[0]);
+      newPopulation.push(entities[0].entity);
 
     while (newPopulation.length < this.populationSize) {
       if (
@@ -142,14 +125,13 @@ class GeneticAlgorithm {
         Math.random() <= this.crossoverRate && // base crossover on specified probability
         newPopulation.length + 1 < this.populationSize // keeps us from going 1 over the max population size
       ) {
-        var parents = this.selectParents(this.population);
-        var children = this.crossover(
-          clone(parents[0]),
-          clone(parents[1])
-        ).map(mutateOrNot);
+        var parents = this.selectParents(entities);
+        var children = this.crossover(clone(parents[0]), clone(parents[1])).map(
+          mutateOrNot
+        );
         newPopulation.push(children[0], children[1]);
       } else {
-        newPopulation.push(mutateOrNot(this.selectSingle(this.population)));
+        newPopulation.push(mutateOrNot(this.selectSingle(entities)));
       }
     }
 

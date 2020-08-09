@@ -4,20 +4,6 @@ const ga = new GeneticAlgorithm();
 
 let solution = '';
 
-ga.seed = function () {
-  function randomString(len) {
-    var text = '';
-    var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    for (var i = 0; i < len; i++)
-      text += charset.charAt(Math.floor(Math.random() * charset.length));
-
-    return text;
-  }
-
-  // create random strings that are equal in length to solution
-  return randomString(solution.length);
-};
-
 ga.mutate = function (entity) {
   function replaceAt(str, index, character) {
     return (
@@ -80,7 +66,7 @@ ga.generation = function (pop, generation, stats) {
   return pop[0].entity != solution;
 };
 
-ga.notification = function (pop, generation, stats, isFinished) {
+ga.onEvolve = function (pop, generation, stats, isFinished) {
   function lerp(a, b, p) {
     return a + (b - a) * p;
   }
@@ -124,5 +110,22 @@ btnSolve.addEventListener('click', () => {
 
   const quote = document.querySelector('#quote');
   solution = quote.value;
-  ga.start();
+
+  function randomString(len) {
+    var text = '';
+    var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    for (var i = 0; i < len; i++)
+      text += charset.charAt(Math.floor(Math.random() * charset.length));
+
+    return text;
+  }
+
+  const populationSize = 250;
+  const seeds = [];
+  for (let i = 0; i < populationSize; i++) {
+    // create random strings that are equal in length to solution
+    seeds.push(randomString(solution.length));
+  }
+
+  ga.start(seeds);
 });
