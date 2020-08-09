@@ -1,6 +1,6 @@
 {
   "name": "@jeantimex/genetic-algorithm",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Implement Genetic Algorithm in JavaScript.",
   "main": "dist/genetic-algorithm.js",
   "husky": {
