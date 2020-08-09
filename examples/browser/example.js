@@ -2,19 +2,7 @@ const {GeneticAlgorithm} = genetic;
 
 const ga = new GeneticAlgorithm();
 
-ga.seed = function () {
-  function randomString(len) {
-    var text = '';
-    var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    for (var i = 0; i < len; i++)
-      text += charset.charAt(Math.floor(Math.random() * charset.length));
-
-    return text;
-  }
-
-  // create random strings that are equal in length to solution
-  return randomString(this.userData['solution'].length);
-};
+let solution = '';
 
 ga.mutate = function (entity) {
   function replaceAt(str, index, character) {
@@ -59,13 +47,13 @@ ga.fitness = function (entity) {
   var i;
   for (i = 0; i < entity.length; ++i) {
     // increase fitness for each character that matches
-    if (entity[i] == this.userData['solution'][i]) fitness += 1;
+    if (entity[i] == solution[i]) fitness += 1;
 
     // award fractions of a point as we get warmer
     fitness +=
       (127 -
         Math.abs(
-          entity.charCodeAt(i) - this.userData['solution'].charCodeAt(i)
+          entity.charCodeAt(i) - solution.charCodeAt(i)
         )) /
       50;
   }
@@ -73,12 +61,12 @@ ga.fitness = function (entity) {
   return fitness;
 };
 
-ga.generation = function (pop, generation, stats) {
+ga.isFinished = function (pop, generation, stats) {
   // stop running once we've reached the solution
-  return pop[0].entity != this.userData['solution'];
+  return pop[0].entity === solution;
 };
 
-ga.notification = function (pop, generation, stats, isFinished) {
+ga.onEvolve = function (pop, generation, stats, isFinished) {
   function lerp(a, b, p) {
     return a + (b - a) * p;
   }
@@ -120,18 +108,24 @@ btnSolve.addEventListener('click', () => {
   const tbody = document.querySelector('#results tbody');
   tbody.innerHTML = '';
 
-  var config = {
-    iterations: 4000,
-    size: 250,
-    crossover: 0.3,
-    mutation: 0.3,
-    skip: 20,
-  };
-
   const quote = document.querySelector('#quote');
-  var userData = {
-    solution: quote.value,
-  };
+  solution = quote.value;
 
-  ga.evolve(config, userData);
+  function randomString(len) {
+    var text = '';
+    var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    for (var i = 0; i < len; i++)
+      text += charset.charAt(Math.floor(Math.random() * charset.length));
+
+    return text;
+  }
+
+  const populationSize = 250;
+  const seeds = [];
+  for (let i = 0; i < populationSize; i++) {
+    // create random strings that are equal in length to solution
+    seeds.push(randomString(solution.length));
+  }
+
+  ga.start(seeds);
 });

@@ -1,3 +1,6 @@
+const maximize = (a, b) => a >= b;
+const minimize = (a, b) => a < b;
+
 /**
  * Make a deep copy of an object
  *
@@ -36,4 +39,11 @@ const decode = (str) =>
     return value;
   });
 
-export { clone, encode, decode };
+const tournamentSelection = (optimize) => (pop) => {
+  const n = pop.length;
+  const a = pop[Math.floor(Math.random() * n)];
+  const b = pop[Math.floor(Math.random() * n)];
+  return optimize(a.fitness, b.fitness) ? a.entity : b.entity;
+};
+
+export { clone, encode, decode, maximize, minimize, tournamentSelection };
