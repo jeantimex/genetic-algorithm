@@ -79,6 +79,7 @@ class GeneticAlgorithm {
       entities.reduce((a, b) => {
         return a + b.fitness;
       }, 0) / this.populationSize;
+
     const stdev = Math.sqrt(
       entities
         .map((a) => {

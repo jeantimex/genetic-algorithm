@@ -61,9 +61,9 @@ ga.fitness = function (entity) {
   return fitness;
 };
 
-ga.generation = function (pop, generation, stats) {
+ga.isFinished = function (pop, generation, stats) {
   // stop running once we've reached the solution
-  return pop[0].entity != solution;
+  return pop[0].entity === solution;
 };
 
 ga.onEvolve = function (pop, generation, stats, isFinished) {
