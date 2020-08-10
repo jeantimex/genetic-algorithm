@@ -39,11 +39,11 @@ const decode = (str) =>
     return value;
   });
 
-const tournamentSelection = (optimize) => (pop) => {
-  const n = pop.length;
-  const a = pop[Math.floor(Math.random() * n)];
-  const b = pop[Math.floor(Math.random() * n)];
-  return optimize(a.fitness, b.fitness) ? a.entity : b.entity;
+const tournamentSelection = (optimize) => (population) => {
+  const n = population.length;
+  const a = population[Math.floor(Math.random() * n)];
+  const b = population[Math.floor(Math.random() * n)];
+  return optimize(a.fitness, b.fitness) ? a.chromosome : b.chromosome;
 };
 
 export { clone, encode, decode, maximize, minimize, tournamentSelection };

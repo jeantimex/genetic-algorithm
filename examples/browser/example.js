@@ -1,10 +1,11 @@
-const {GeneticAlgorithm} = genetic;
+const { GeneticAlgorithm } = genetic;
 
 const ga = new GeneticAlgorithm();
 
 let solution = '';
+let last = '';
 
-ga.mutate = function (entity) {
+ga.mutate = function (chromosome) {
   function replaceAt(str, index, character) {
     return (
       str.substr(0, index) + character + str.substr(index + character.length)
@@ -12,75 +13,69 @@ ga.mutate = function (entity) {
   }
 
   // chromosomal drift
-  var i = Math.floor(Math.random() * entity.length);
+  const i = Math.floor(Math.random() * chromosome.length);
   return replaceAt(
-    entity,
+    chromosome,
     i,
     String.fromCharCode(
-      entity.charCodeAt(i) + (Math.floor(Math.random() * 2) ? 1 : -1)
+      chromosome.charCodeAt(i) + (Math.floor(Math.random() * 2) ? 1 : -1)
     )
   );
 };
 
 ga.crossover = function (mother, father) {
   // two-point crossover
-  var len = mother.length;
-  var ca = Math.floor(Math.random() * len);
-  var cb = Math.floor(Math.random() * len);
+  const len = mother.length;
+  let ca = Math.floor(Math.random() * len);
+  let cb = Math.floor(Math.random() * len);
   if (ca > cb) {
-    var tmp = cb;
+    const tmp = cb;
     cb = ca;
     ca = tmp;
   }
 
-  var son =
+  const son =
     father.substr(0, ca) + mother.substr(ca, cb - ca) + father.substr(cb);
-  var daughter =
+  const daughter =
     mother.substr(0, ca) + father.substr(ca, cb - ca) + mother.substr(cb);
 
   return [son, daughter];
 };
 
-ga.fitness = function (entity) {
-  var fitness = 0;
+ga.fitness = function (chromosome) {
+  let fitness = 0;
 
-  var i;
-  for (i = 0; i < entity.length; ++i) {
+  for (let i = 0; i < chromosome.length; ++i) {
     // increase fitness for each character that matches
-    if (entity[i] == solution[i]) fitness += 1;
+    if (chromosome[i] == solution[i]) fitness += 1;
 
     // award fractions of a point as we get warmer
     fitness +=
-      (127 -
-        Math.abs(
-          entity.charCodeAt(i) - solution.charCodeAt(i)
-        )) /
-      50;
+      (127 - Math.abs(chromosome.charCodeAt(i) - solution.charCodeAt(i))) / 50;
   }
 
   return fitness;
 };
 
-ga.isFinished = function (pop, generation, stats) {
+ga.isEvolutionCompleted = function (population) {
   // stop running once we've reached the solution
-  return pop[0].entity === solution;
+  return population[0].chromosome === solution;
 };
 
-ga.onEvolve = function (pop, generation, stats, isFinished) {
+ga.onEvolve = function (generation, population) {
   function lerp(a, b, p) {
     return a + (b - a) * p;
   }
 
-  var value = pop[0].entity;
-  this.last = this.last || value;
+  const value = population[0].chromosome;
+  last = last || value;
 
-  if (pop != 0 && value == this.last) return;
+  if (generation !== 0 && value === last) return;
 
-  var solution = [];
-  var i;
-  for (i = 0; i < value.length; ++i) {
-    var diff = value.charCodeAt(i) - this.last.charCodeAt(i);
-    var style = 'background: transparent;';
+  const solution = [];
+  for (let i = 0; i < value.length; ++i) {
+    const diff = value.charCodeAt(i) - last.charCodeAt(i);
+    let style = 'background: transparent;';
     if (diff > 0) {
       style = 'background: rgb(0,200,50); color: #fff;';
     } else if (diff < 0) {
@@ -90,17 +85,17 @@ ga.onEvolve = function (pop, generation, stats, isFinished) {
     solution.push('<span style="' + style + '">' + value[i] + '</span>');
   }
 
-  var buf = '';
+  let buf = '';
   buf += '<tr>';
   buf += '<td>' + generation + '</td>';
-  buf += '<td>' + pop[0].fitness.toPrecision(5) + '</td>';
+  buf += '<td>' + population[0].fitness.toPrecision(5) + '</td>';
   buf += '<td>' + solution.join('') + '</td>';
   buf += '</tr>';
 
   const tbody = document.querySelector('#results tbody');
   tbody.innerHTML = buf + tbody.innerHTML;
 
-  this.last = value;
+  last = value;
 };
 
 const btnSolve = document.querySelector('#solve');
@@ -112,9 +107,9 @@ btnSolve.addEventListener('click', () => {
   solution = quote.value;
 
   function randomString(len) {
-    var text = '';
-    var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    for (var i = 0; i < len; i++)
+    let text = '';
+    const charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < len; i++)
       text += charset.charAt(Math.floor(Math.random() * charset.length));
 
     return text;
@@ -127,5 +122,6 @@ btnSolve.addEventListener('click', () => {
     seeds.push(randomString(solution.length));
   }
 
+  last = '';
   ga.start(seeds);
 });
